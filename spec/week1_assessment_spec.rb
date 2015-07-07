@@ -96,6 +96,11 @@ describe BattleBot do
 
 
     describe '.count' do
+
+      before(:each) do
+        BattleBot.class_variable_set(:@@count, 0)
+      end
+
       it 'returns 0 if no bots have been created' do
         expect(BattleBot.count).to eq(0)
       end
@@ -188,7 +193,7 @@ describe BattleBot do
 
 
     describe '#enemies' do
-      let(:bot3){ Bot.new "BazBot"}
+      let(:bot3){ BattleBot.new "BazBot"}
 
       it 'starts returning a blank array' do
         expect(bot.enemies).to eq([])
@@ -217,6 +222,7 @@ describe BattleBot do
 
 
     end
+
 
 
   end
