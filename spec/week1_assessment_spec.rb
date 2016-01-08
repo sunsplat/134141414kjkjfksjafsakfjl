@@ -1,5 +1,6 @@
 require_relative '../lib/week1_assessment'
 
+# DONE 20:42:42
 
 describe Weapon do
 
@@ -7,8 +8,9 @@ describe Weapon do
 
   describe '#initialize' do
 
+    # Needed to add ArgumentError
     it 'raises an exception if run without a name or value' do
-      expect{ Weapon.new }.to raise_error
+      expect{ Weapon.new }.to raise_error(ArgumentError)
     end
 
     it "has a name attribute" do
@@ -20,11 +22,11 @@ describe Weapon do
     end
 
     it 'has an unchangeable name' do
-      expect( weapon).not_to respond_to(:name=)
+      expect( weapon).to_not respond_to(:name=)
     end
 
     it 'has an unchangeable damage value' do
-      expect( weapon).not_to respond_to(:damage=)
+      expect( weapon).to_not respond_to(:damage=)
     end
 
   end
@@ -95,7 +97,7 @@ describe BattleBot do
     end
 
 
-    describe '.count' do
+    describe '#count' do
 
       before(:each) do
         BattleBot.class_variable_set(:@@count, 0)
@@ -128,8 +130,9 @@ describe BattleBot do
 
       context "without a weapon" do
 
+        # Changed to raise_error
         it "cannot attack" do
-          expect{ bot.attack bot2 }.to raise_exception
+          expect{ bot.attack bot2 }.to raise_error(ArgumentError)
         end
 
       end
@@ -140,12 +143,14 @@ describe BattleBot do
           bot.pick_up( weapon )
         end
 
+        # Changed to raise_error
         it "can attack another Battle Bot" do
-          expect{ bot.attack bot2 }.to_not raise_exception
+          expect{ bot.attack bot2 }.to_not raise_error
         end
 
+        # Changed to raise_error
         it 'cannot attack things that are not Battle Bots' do
-          expect{ bot.attack [1,2,3]}.to raise_exception ArgumentError
+          expect{ bot.attack [1,2,3]}.to raise_error(ArgumentError)
         end
 
         context "after attacking another bot" do
@@ -217,7 +222,7 @@ describe BattleBot do
       end
 
       it 'cannot be directly modified' do
-        expect(bot).not_to respond_to(:enemies=)
+        expect(bot).to_not respond_to(:enemies=)
       end
 
 
