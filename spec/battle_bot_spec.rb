@@ -1,50 +1,14 @@
-require_relative '../lib/week1_assessment'
-
-# DONE 20:42:42
-
-describe Weapon do
-
-  let(:weapon){ Weapon.new("FooWeapon", 10) }
-
-  describe '#initialize' do
-
-    # Needed to add ArgumentError
-    it 'raises an exception if run without a name or value' do
-      expect{ Weapon.new }.to raise_error(ArgumentError)
-    end
-
-    it "has a name attribute" do
-      expect( weapon.name ).to eq( "FooWeapon" )
-    end
-
-    it "is given a damage value" do
-      expect( weapon.damage ).to eq( 10 )
-    end
-
-    it 'has an unchangeable name' do
-      expect( weapon).to_not respond_to(:name=)
-    end
-
-    it 'has an unchangeable damage value' do
-      expect( weapon).to_not respond_to(:damage=)
-    end
-
-  end
-
-
-
-end
-
+require 'spec_helper'
+require 'battle_bot'
+require 'weapon'
 
 describe BattleBot do
-
   let(:bot_name){ "FooBot" }
   let(:bot){ BattleBot.new( bot_name ) }
   let(:bot2){ BattleBot.new("BarBot") }
 
 
   describe '#initialize' do
-
     it "has a name" do
       expect( bot.name ).to eq( bot_name )
     end
@@ -66,10 +30,7 @@ describe BattleBot do
     end
   end
 
-
-
   describe "interactions" do
-
     let(:weapon){ Weapon.new( "FooWeapon", 10 ) }
     let(:weapon2){ Weapon.new("Better Weapon", 20)}
 
@@ -79,7 +40,6 @@ describe BattleBot do
     end
 
     context "after picking up a weapon" do
-
       before do
         bot.pick_up weapon
       end
@@ -93,12 +53,10 @@ describe BattleBot do
         bot.pick_up weapon2
         expect( bot.weapon ).to eq( weapon )
       end
-
     end
 
 
     describe '#count' do
-
       before(:each) do
         BattleBot.class_variable_set(:@@count, 0)
       end
@@ -123,22 +81,17 @@ describe BattleBot do
         bot2.take_damage(100)
         expect(BattleBot.count).to eq(1)
       end
-
     end
 
     describe "doing battle" do
-
       context "without a weapon" do
-
         # Changed to raise_error
         it "cannot attack" do
-          expect{ bot.attack bot2 }.to raise_error(ArgumentError)
+          expect{ bot.attack bot2 }.to raise_error("No Weapon")
         end
-
       end
 
       context "with a weapon" do
-
         before do
           bot.pick_up( weapon )
         end
@@ -154,36 +107,29 @@ describe BattleBot do
         end
 
         context "after attacking another bot" do
-
           it "deals weapon damage with each attack" do
             expect( bot2 ).to receive(:take_damage).with(weapon.damage)
             bot.attack bot2
           end
-
         end
 
         context "after being attacked" do
-
           before { bot.attack bot2 }
 
           it "receives damage" do
             expect( bot2.health ).to eq( 100 - weapon.damage )
           end
-
         end
 
         context "after receiving damage" do
-
           it "checks if itself is dead" do
             expect( bot2 ).to receive(:dead?)
             bot.attack bot2
           end
-
         end
       end
 
       context "after receiving significant damage" do
-
         before do
           bot.take_damage(100)
         end
@@ -191,9 +137,7 @@ describe BattleBot do
         it "is dead" do
           expect( bot.dead? ).to eq( true )
         end
-
       end
-
     end
 
 
@@ -217,19 +161,13 @@ describe BattleBot do
           b.pick_up weapon
           b.attack(bot)
         end
-
         expect(bot.enemies).to eq([bot2, bot3])
       end
 
       it 'cannot be directly modified' do
         expect(bot).to_not respond_to(:enemies=)
       end
-
-
     end
-
-
-
   end
-
 end
+

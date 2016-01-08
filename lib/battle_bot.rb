@@ -1,14 +1,3 @@
-class Weapon
-  attr_reader :name,
-              :damage
-
-
-  def initialize(name, damage)
-    @name = name
-    @damage = damage
-  end
-end
-
 class BattleBot
   @@count = 0
 
@@ -39,12 +28,10 @@ class BattleBot
   end
 
   def attack(enemy)
-    if @weapon && enemy.is_a?(BattleBot)
-      enemy.take_damage(10)
-      enemy.enemies << self unless enemy.enemies.include?(self)
-    elsif 
-      raise ArgumentError
-    end
+    raise ArgumentError unless enemy.is_a?(BattleBot)
+    raise "No Weapon"  unless @weapon
+    enemy.take_damage(@weapon.damage)
+    add_enemy(enemy)
   end
 
   def dead?
@@ -54,6 +41,10 @@ class BattleBot
   def self.count
     @@count
   end
-end
 
+  private
+  def add_enemy(enemy)
+    enemy.enemies << self unless enemy.enemies.include?(self)
+  end
+end
 
