@@ -3,11 +3,15 @@ require 'weapon'
 
 # Elapsed Time: 20:42:42
 
+# change by
+# test your self
+# 10 questions
+# more difficult?
+
 describe Weapon do
   let(:weapon) { Weapon.new("FooWeapon", 10) }
 
   describe '#initialize' do
-    # Needed to add ArgumentError
     it 'raises an ArgumentError if name and damage are not provided' do
       expect { Weapon.new }.to raise_error(ArgumentError)
     end

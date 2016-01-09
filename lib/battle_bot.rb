@@ -14,24 +14,41 @@ class BattleBot
   end
 
   def pick_up(weapon)
-    @weapon = weapon unless @weapon
+    raise ArgumentError if weapon.bot
+    unless @weapon
+      @weapon = weapon
+      @weapon.bot = self
+      @weapon
+    end
   end
 
   def drop_weapon
+    @weapon.bot = nil
     @weapon = nil
   end
 
   def take_damage(amount)
     @health -= amount
+    @health = 0 if @health < 0
     @@count -= 1 if dead?
     @health
   end
 
+  def heal
+    @health += 10 unless dead?
+    @health = 100 if @health > 100
+    @health
+  end
+
   def attack(enemy)
-    raise ArgumentError unless enemy.is_a?(BattleBot)
-    raise "No Weapon"  unless @weapon
+    raise ArgumentError unless @weapon && enemy.is_a?(BattleBot)
     enemy.take_damage(@weapon.damage)
     add_enemy(enemy)
+    enemy.attack(self) unless enemy.dead? || !enemy.has_weapon?
+  end
+
+  def has_weapon?
+    !!@weapon
   end
 
   def dead?

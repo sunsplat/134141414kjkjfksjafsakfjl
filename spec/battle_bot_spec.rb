@@ -28,6 +28,10 @@ describe BattleBot do
     it "is not dead" do
       expect(bot.dead?).to eq(false)
     end
+
+    it "does not start with a weapon" do
+      expect(bot.has_weapon?).to eq(false)
+    end
   end
 
   describe "interactions" do
@@ -37,6 +41,11 @@ describe BattleBot do
     it "can pick up a weapon" do
       bot.pick_up weapon
       expect(bot.weapon).to eq(weapon)
+    end
+
+    it "cannot pick up a weapon already picked up by another bot" do
+      bot.pick_up(weapon)
+      expect { bot2.pick_up(weapon) }.to raise_error(ArgumentError)
     end
 
     context "after picking up a weapon" do
@@ -52,6 +61,10 @@ describe BattleBot do
       it "cannot pick up another weapon" do
         bot.pick_up weapon2
         expect(bot.weapon).to eq(weapon)
+      end
+
+      it "sets the weapon's bot attribute to the bot that picked up the weapon" do
+        expect(weapon.bot).to eq(bot)
       end
     end
 
@@ -70,7 +83,7 @@ describe BattleBot do
         expect(BattleBot.count).to eq(1)
       end
 
-      it 'returns 2 if one bot has been created' do
+      it 'returns 2 if another bot has been created' do
         bot
         bot2
         expect(BattleBot.count).to eq(2)
@@ -85,9 +98,8 @@ describe BattleBot do
 
     describe "doing battle" do
       context "without a weapon" do
-        # Changed to raise_error
-        it "raises an error with a message of 'No Weapon'" do
-          expect { bot.attack bot2 }.to raise_error("No Weapon")
+        it "raises an ArgumentError" do
+          expect { bot.attack bot2 }.to raise_error(ArgumentError)
         end
       end
 
@@ -96,12 +108,10 @@ describe BattleBot do
           bot.pick_up(weapon)
         end
 
-        # Changed to raise_error
         it "can attack another Battle Bot" do
           expect { bot.attack bot2 }.to_not raise_error
         end
 
-        # Changed to raise_error
         it 'cannot attack things that are not Battle Bots' do
           expect { bot.attack [1,2,3]}.to raise_error(ArgumentError)
         end
@@ -119,12 +129,47 @@ describe BattleBot do
           it "receives damage" do
             expect(bot2.health).to eq(100 - weapon.damage)
           end
+
+          context "it is not dead" do
+            it 'can heal' do
+              expect { bot2.heal }.to change(bot2, :health).by(10)
+            end
+
+            it 'cannot heal past the maximum health value' do
+              20.times { bot2.heal }
+              expect(bot2.health).to eq(100)
+            end
+          end
+
+          context "it is dead" do
+            it 'cannot heal' do
+              bot2.take_damage(1000)
+              expect { bot2.heal }.to change(bot2, :health).by(0)
+            end
+          end
         end
 
         context "after receiving damage" do
           it "checks if itself is dead" do
-            expect(bot2).to receive(:dead?)
+            expect(bot2).to receive(:dead?).at_least(1).times
             bot.attack bot2
+          end
+        end
+
+        context "the enemy bot is still alive" do
+          context "and has a weapon" do
+            it "triggers a retaliation attack from the enemy bot on the original bot" do
+              bot2.pick_up(weapon2)
+              expect(bot2).to receive(:attack).with(bot)
+              bot.attack(bot2)
+            end
+          end
+
+          context "and does not have a weapon" do
+            it "does not trigger a retaliation attack from the enemy bot" do
+              expect(bot2).to_not receive(:attack)
+              bot.attack(bot2)
+            end
           end
         end
       end
@@ -136,6 +181,13 @@ describe BattleBot do
 
         it "is dead" do
           expect(bot.dead?).to eq(true)
+        end
+
+        context "the damage is greater than the value of health" do
+          it "never has goes below zero" do
+            bot.take_damage(1000)
+            expect(bot.health).to eq(0)
+          end
         end
       end
     end
@@ -150,7 +202,7 @@ describe BattleBot do
 
       it 'returns an array of bots who attacked it' do
         [bot2, bot3].each do |b|
-          b.pick_up weapon
+          b.pick_up Weapon.new("laser", 10)
           b.attack(bot)
         end
         expect(bot.enemies).to eq([bot2, bot3])
@@ -158,7 +210,7 @@ describe BattleBot do
 
       it 'does not count the same bot twice' do
         [bot2, bot2, bot3].each do |b|
-          b.pick_up weapon
+          b.pick_up Weapon.new("laser", 10)
           b.attack(bot)
         end
         expect(bot.enemies).to eq([bot2, bot3])
