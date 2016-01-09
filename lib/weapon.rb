@@ -1,5 +1,11 @@
 class Weapon
+  # bot is read and write
+  # holds reference to bot
+  # that picked up weapon
   attr_accessor :bot
+
+  # name and damage
+  # are read only
   attr_reader :name,
               :damage
 
@@ -8,6 +14,8 @@ class Weapon
     @damage = damage
   end
 
+  # returns true if currently
+  # picked up by bot
   def picked_up?
     !!@bot
   end
