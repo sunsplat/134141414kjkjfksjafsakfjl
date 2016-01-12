@@ -4,10 +4,17 @@ require 'weapon'
 
 describe BattleBot do
 
+  let(:bot) { BattleBot.new("C-3PO") }
+  let(:enemy) { BattleBot.new("R2-D2") }
 
-  let(:bot_name) { "FooBot" }
-  let(:bot) { BattleBot.new(bot_name) }
-  let(:bot2) { BattleBot.new("BarBot") }
+  let(:light_saber){ Weapon.new("LightSaber") }
+  let(:photo_torpedo){ Weapon.new("PhotonTorpedo", 20) }
+  let(:death_star){ Weapon.new("DeathStart", 30) }
+
+
+  before do
+    BattleBot.class_variable_set(:@@count, 0)
+  end
 
 
   # ------------------------------------
@@ -16,23 +23,32 @@ describe BattleBot do
 
   describe '#initialize' do
 
-
-    it "has a name" do
-      expect(bot.name).to eq(bot_name)
+    it 'accepts a string name for the bot as the first parameter' do
+      expect { bot }.to_not raise_error
     end
 
 
-    it "begins with 100 health" do
+    it 'raises an ArgumentError when the no name is passed' do
+      expect { BattleBot.new }.to raise_error(ArgumentError)
+    end
+
+
+    it "sets the name attribute when passed correctly" do
+      expect(bot.name).to eq("C-3PO")
+    end
+
+
+    it "sets health to a default value of 100" do
       expect(bot.health).to eq(100)
     end
 
 
-    it "raises a NoMethodError when attempting to set health" do
-      expect { bot.health = 500 }.to raise_error(NoMethodError)
+    it 'sets enemies to an empty array' do
+      expect(bot.enemies).to eq([])
     end
 
 
-    it "does not have a weapon by default" do
+    it "initializes with weapon set to nil" do
       expect(bot.weapon).to eq(nil)
     end
 
@@ -47,246 +63,474 @@ describe BattleBot do
     end
   end
 
+
   # ------------------------------------
-  # interactions
+  # #name
   # ------------------------------------
 
-  describe "interactions" do
 
+  describe '#name' do
 
-    let(:weapon){ Weapon.new("FooWeapon", 10) }
-    let(:weapon2){ Weapon.new("Better Weapon", 20)}
-
-
-    it "can pick up a weapon" do
-      bot.pick_up weapon
-      expect(bot.weapon).to eq(weapon)
-    end
-
-
-    it "cannot pick up a weapon already picked up by another bot" do
-      bot.pick_up(weapon)
-      expect { bot2.pick_up(weapon) }.to raise_error(ArgumentError)
-    end
-
-
-    context "after picking up a weapon" do
-      before do
-        bot.pick_up weapon
-      end
-
-
-      it "can drop the weapon" do
-        bot.drop_weapon
-        expect(bot.weapon).to eq(nil)
-      end
-
-
-      it "cannot pick up another weapon" do
-        bot.pick_up weapon2
-        expect(bot.weapon).to eq(weapon)
-      end
-
-
-      it "sets the weapon's bot attribute to the bot that picked up the weapon" do
-        expect(weapon.bot).to eq(bot)
-      end
-
-    end
-
-    # ------------------------------------
-    # #count
-    # ------------------------------------
-
-    describe '#count' do
-
-      before(:each) do
-        BattleBot.class_variable_set(:@@count, 0)
-      end
-
-
-      it 'returns 0 if no bots have been created' do
-        expect(BattleBot.count).to eq(0)
-      end
-
-
-      it 'returns 1 if one bot has been created' do
-        bot
-        expect(BattleBot.count).to eq(1)
-      end
-
-
-      it 'returns 2 if another bot has been created' do
-        bot
-        bot2
-        expect(BattleBot.count).to eq(2)
-      end
-
-
-      it 'returns only the number of LIVING bots' do
-        bot
-        bot2.take_damage(100)
-        expect(BattleBot.count).to eq(1)
-      end
-
-    end
-
-    # ------------------------------------
-    # doing battle
-    # ------------------------------------
-
-    describe "doing battle" do
-
-      context "without a weapon" do
-
-        it "raises an ArgumentError" do
-          expect { bot.attack bot2 }.to raise_error(ArgumentError)
-        end
-      end
-
-
-      context "with a weapon" do
-
-        before do
-          bot.pick_up(weapon)
-        end
-
-
-        it "can attack another Battle Bot" do
-          expect { bot.attack bot2 }.to_not raise_error
-        end
-
-
-        it 'cannot attack things that are not Battle Bots' do
-          expect { bot.attack [1,2,3]}.to raise_error(ArgumentError)
-        end
-
-
-        context "after attacking another bot" do
-          it "deals weapon damage with each attack" do
-            expect(bot2).to receive(:take_damage).with(weapon.damage)
-            bot.attack bot2
-          end
-        end
-
-
-        context "after being attacked" do
-          before { bot.attack bot2 }
-
-          it "receives damage" do
-            expect(bot2.health).to eq(100 - weapon.damage)
-          end
-
-
-          context "it is not dead" do
-            it 'can heal' do
-              expect { bot2.heal }.to change(bot2, :health).by(10)
-            end
-
-
-            it 'cannot heal past the maximum health value' do
-              20.times { bot2.heal }
-              expect(bot2.health).to eq(100)
-            end
-          end
-
-
-          context "it is dead" do
-            it 'cannot heal' do
-              bot2.take_damage(1000)
-              expect { bot2.heal }.to change(bot2, :health).by(0)
-            end
-          end
-        end
-
-
-        context "after receiving damage" do
-          it "checks if itself is dead" do
-            expect(bot2).to receive(:dead?).at_least(1).times
-            bot.attack bot2
-          end
-        end
-
-
-        context "the enemy bot is still alive" do
-          context "and has a weapon" do
-            it "triggers a retaliation attack from the enemy bot on the original bot" do
-              bot2.pick_up(weapon2)
-              expect(bot2).to receive(:attack).with(bot)
-              bot.attack(bot2)
-            end
-          end
-
-
-          context "and does not have a weapon" do
-            it "does not trigger a retaliation attack from the enemy bot" do
-              expect(bot2).to_not receive(:attack)
-              bot.attack(bot2)
-            end
-
-          end
-        end
-      end
-
-
-      context "after receiving significant damage" do
-        before do
-          bot.take_damage(100)
-        end
-
-
-        it "is dead" do
-          expect(bot.dead?).to eq(true)
-        end
-
-
-        context "the damage is greater than the value of health" do
-          it "never has goes below zero" do
-            bot.take_damage(1000)
-            expect(bot.health).to eq(0)
-          end
-
-        end
-      end
-    end
-
-    # ------------------------------------
-    # #enemies
-    # ------------------------------------
-
-    describe '#enemies' do
-      let(:bot3){ BattleBot.new "BazBot"}
-
-      it 'starts returning a blank array' do
-        expect(bot.enemies).to eq([])
-      end
-
-
-      it 'returns an array of bots who attacked it' do
-        [bot2, bot3].each do |b|
-          b.pick_up Weapon.new("laser", 10)
-          b.attack(bot)
-        end
-
-        expect(bot.enemies).to eq([bot2, bot3])
-      end
-
-
-      it 'does not count the same bot twice' do
-        [bot2, bot2, bot3].each do |b|
-          b.pick_up Weapon.new("laser", 10)
-          b.attack(bot)
-        end
-
-        expect(bot.enemies).to eq([bot2, bot3])
-      end
-
-
-      it 'cannot be directly modified' do
-        expect(bot).to_not respond_to(:enemies=)
-      end
-
+    it "raises NoMethodError when trying to assign a new value" do
+      expect { bot.name = "Droid" }.to raise_error(NoMethodError)
     end
   end
+
+
+  # ------------------------------------
+  # #health
+  # ------------------------------------
+
+
+  describe '#health' do
+
+    it "raises NoMethodError when trying to assign a new value" do
+      expect { bot.health = 500 }.to raise_error(NoMethodError)
+    end
+  end
+
+
+  # ------------------------------------
+  # #enemies
+  # ------------------------------------
+
+
+  describe '#enemies' do
+
+    it "raises NoMethodError when trying to assign a new value" do
+      expect { bot.enemies = [] }.to raise_error(NoMethodError)
+    end
+  end
+
+
+  # ------------------------------------
+  # #weapon
+  # ------------------------------------  
+
+
+  describe '#weapon' do
+
+    it "raises NoMethodError when trying to assign a new value" do
+      expect { bot.weapon = light_saber }.to raise_error(NoMethodError)
+    end
+  end
+
+
+  # ------------------------------------
+  # #pick_up
+  # ------------------------------------
+
+
+  describe '#pick_up' do
+
+    it 'accepts a weapon as a parameter' do
+      expect { bot.pick_up(photo_torpedo) }.to_not raise_error
+    end
+
+
+    it 'raises an ArgumentError if the parameter is not a Weapon' do
+      expect { bot.pick_up("Not a weapon!") }.to raise_error(ArgumentError)
+    end
+
+
+    it 'raises an ArgumentError if the weapon has been picked up by any bot' do
+      enemy.pick_up(photo_torpedo)
+      expect { bot.pick_up(photo_torpedo) }.to raise_error(ArgumentError)
+    end
+
+
+    context 'the bot already has a weapon' do
+
+      before do
+        bot.pick_up(photo_torpedo)
+      end
+
+
+      it "does not change the weapon that the bot already has" do
+        bot.pick_up(death_star)
+        expect(bot.weapon).to eq(photo_torpedo)
+      end
+
+
+      it "does not set the weapon's bot attribute to the bot" do
+        bot.pick_up(death_star)
+        expect(death_star.bot).to_not eq(bot)
+      end
+
+
+      it 'does not call weapon#bot=' do
+        expect(death_star).to_not receive(:bot=)
+        bot.pick_up(death_star)
+      end
+
+
+      it 'returns nil' do
+        expect(bot.pick_up(death_star)).to be_nil
+      end
+    end
+
+
+    context 'the bot does not have a weapon' do
+
+      it "sets the bot's weapon to the weapon being picked up" do
+        bot.pick_up(death_star)
+        expect(bot.weapon).to eq(death_star)
+      end
+
+
+      it "sets the weapon's bot attribute to the bot" do
+        bot.pick_up(death_star)
+        expect(death_star.bot).to eq(bot)
+      end
+
+
+      it 'calls weapon#bot= and passes it the bot doing the pick up' do
+        expect(death_star).to receive(:bot=).with(bot)
+        bot.pick_up(death_star)
+      end
+
+
+      it 'returns the weapon that was picked up' do
+        expect(bot.pick_up(death_star)).to eq(death_star)
+      end
+    end
+  end
+
+
+  # ------------------------------------
+  # #drop_weapon
+  # ------------------------------------
+
+
+  describe '#drop_weapon' do
+
+    before do
+      bot.pick_up(light_saber)
+      bot.drop_weapon
+    end
+
+
+    it 'sets bot#weapon to nil' do
+      expect(bot.weapon).to be_nil
+    end
+
+
+    it 'sets weapon#bot to nil' do
+      expect(light_saber.bot).to be_nil
+    end
+  end
+
+
+  # ------------------------------------
+  # #take_damage
+  # ------------------------------------
+
+
+  describe '#take_damage' do
+
+    it 'accepts a Fixnum parameter of the damage amount' do
+      expect { bot.take_damage(1) }.to_not raise_error
+    end
+
+
+    it 'raises an error when the parameter is not a Fixnum' do
+      expect { bot.take_damage("Virus") }.to raise_error(ArgumentError)
+    end
+
+
+    it "descreases the bot's health by the damage amount" do
+      expect { bot.take_damage(10) }.to change(bot, :health).by(-10)
+    end
+
+
+    it "does not allow health to drop below a value of 0" do
+      bot.take_damage(bot.health + 1000)
+      expect(bot.health).to eq(0)
+    end
+
+
+    it 'returns the current health value' do
+      expect(bot.take_damage(10)).to eq(bot.health)
+    end
+  end
+
+
+  # ------------------------------------
+  # #heal
+  # ------------------------------------
+
+
+  describe '#heal' do
+
+    context 'the bot is damaged but not dead' do
+
+      before do
+        bot.take_damage(50)
+      end
+
+
+      it 'increases health by 10' do
+        expect { bot.heal }.to change(bot, :health).by(10)
+      end
+
+
+      it 'does not allow health to be above 100' do
+        10.times { bot.heal }
+        expect(bot.health).to eq(100)
+      end
+
+
+      it 'returns the current health value' do
+        expect(bot.heal).to eq(bot.health)
+      end
+    end
+
+    context 'the bot is dead' do
+
+      it 'does not change the value of health' do
+        bot.take_damage(1000)
+        expect { bot.heal }.to change(bot, :health).by(0)
+      end
+    end
+  end
+
+
+  # ------------------------------------
+  # #attack
+  # ------------------------------------
+
+
+  describe '#attack' do
+
+    before do
+      bot.pick_up(death_star)
+    end
+
+
+    it 'raises an ArgumentError if the enemy is not a BattleBot' do
+      expect { bot.attack("Puppy") }.to raise_error(ArgumentError)
+    end
+
+
+    it 'raises an ArgumentError if attempting to self attack' do
+      expect { bot.attack(bot) }.to raise_error(ArgumentError)
+    end
+
+
+    it 'raises an ArgumentError if the bot has no weapon to attack with' do
+      bot.drop_weapon
+      expect { bot.attack(enemy) }.to raise_error(ArgumentError)
+    end
+
+
+    it 'accepts an enemy bot as a parameter' do
+      bot.pick_up(light_saber)
+      expect { bot.attack(enemy) }.to_not raise_error
+    end
+
+
+
+    context 'the bot can attack' do
+
+      it 'calls enemy#receive_attack_from passing the bot who attacked' do
+        expect(enemy).to receive(:receive_attack_from).with(bot)
+        bot.attack(enemy)
+      end
+    end
+  end
+
+
+  # ------------------------------------
+  # #receive_attack_from
+  # ------------------------------------
+
+
+  describe '#receive_attack_from' do
+
+    before do
+      enemy.pick_up(death_star)
+    end
+
+
+    it 'accepts an enemy bot as a parameter' do
+      expect { bot.receive_attack_from(enemy) }.to_not raise_error
+    end
+
+
+    it 'raises an ArgumentError if the enemy is not a BattleBot' do
+      expect { bot.receive_attack_from("Puppy") }.to raise_error(ArgumentError)
+    end
+
+
+    it 'raises an ArgumentError if attempting to receive self attack' do
+      expect { bot.receive_attack_from(bot) }.to raise_error(ArgumentError)
+    end
+
+
+    it 'raises an ArgumentError if the enemy has no weapon to attack with' do
+      enemy.drop_weapon
+      expect { bot.receive_attack_from(enemy) }.to raise_error(ArgumentError)
+    end
+
+
+    it 'calls #take_damage on the bot passing the enemy weapon damage amount' do
+      expect(bot).to receive(:take_damage).with(enemy.weapon.damage)
+      bot.receive_attack_from(enemy)
+    end
+
+
+    it 'adds the enemy to enemies array of the bot receiving the attack' do
+      bot.receive_attack_from(enemy)
+      expect(bot.enemies.include?(enemy)).to eq(true)
+    end
+
+
+    it 'does not add the enemy to the enemies array if the enemy is already in the array' do
+      5.times { bot.receive_attack_from(enemy) }
+      expect(bot.enemies.length).to eq(1)
+    end
+
+
+    it 'calls #defend_against on the bot receiving the attack passing the enemy as a parameter' do
+      expect(bot).to receive(:defend_against).with(enemy)
+      bot.receive_attack_from(enemy)
+    end
+
+    context 'the two bots fight until one is dead' do
+
+      it 'does not raise a stack overflow error when calling #defend_against' do
+        bot.pick_up(light_saber)
+        expect { bot.receive_attack_from(enemy) }.to_not raise_error
+      end
+    end
+  end
+
+
+  # ------------------------------------
+  # #defend_against
+  # ------------------------------------
+
+
+  describe '#defend_against' do
+
+    it 'accepts an enemy bot as a parameter' do
+      expect { bot.defend_against(enemy) }.to_not raise_error
+    end
+
+
+    it 'calls #dead?' do
+      expect(bot).to receive(:dead?)
+      bot.defend_against(enemy)
+    end
+
+
+    it 'calls #has_weapon?' do
+      expect(bot).to receive(:has_weapon?)
+      bot.defend_against(enemy)
+    end
+
+    context 'the bot is alive and has a weapon' do
+
+      before do
+        bot.pick_up(light_saber)
+      end
+
+
+      it 'calls #attack on the defending bot passing the enemy as a parameter' do
+        expect(bot).to receive(:attack).with(enemy)
+        bot.defend_against(enemy)
+      end
+    end
+
+
+    context 'the bot is dead' do
+
+      before do
+        bot.take_damage(1000)
+      end
+
+
+      it 'does not call #attack' do
+        expect(bot).to_not receive(:attack)
+      end
+    end
+
+
+    context 'the bot is weaponless' do
+
+      it 'does not call #attack' do
+        expect(bot).to_not receive(:attack)
+      end
+    end
+  end
+
+
+  # ------------------------------------
+  # #has_weapon?
+  # ------------------------------------
+
+
+  describe '#has_weapon?' do
+
+    it 'returns true when the bot has a weapon' do
+      bot.pick_up(light_saber)
+      expect(bot.has_weapon?).to eq(true)
+    end
+
+
+    it 'returns false when the bot does not have a weapon' do
+      expect(bot.has_weapon?).to eq(false)
+    end
+  end
+
+
+  # ------------------------------------
+  # #dead?
+  # ------------------------------------  
+
+
+  describe '#dead?' do
+
+    it "returns true when the bot's health is 0" do
+      bot.take_damage(1000)
+      expect(bot.dead?).to eq(true)
+    end
+
+
+    it "returns false when the bot's health is greater than 0" do
+      expect(bot.dead?).to eq(false)
+    end
+  end
+
+
+  # ------------------------------------
+  # BattleBot#count
+  # ------------------------------------  
+
+
+  describe 'BattleBot#count' do
+
+    let(:bots) { [ bot, enemy ] }
+
+    before do
+      bots
+    end
+
+    it 'returns the number of currently instantiated alive bots' do
+      expect(BattleBot.count).to eq(2)
+    end
+
+
+    it 'is incremented when a new bot is instantiated' do
+      expect { BattleBot.new("RuboCop") }.to change(BattleBot, :count).by(1)
+    end
+
+
+    it 'is decremented when a bot is killed' do
+      expect { bot.take_damage(1000) }.to change(BattleBot, :count).by(-1)
+    end
+  end
+
+
 end
 
