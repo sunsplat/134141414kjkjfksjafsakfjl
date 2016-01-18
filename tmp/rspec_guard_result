@@ -1,0 +1,15 @@
+30 examples, 14 failures in 0.3 seconds
+./spec/battle_bot_spec.rb:126
+./spec/battle_bot_spec.rb:131
+./spec/battle_bot_spec.rb:136
+./spec/battle_bot_spec.rb:149
+./spec/battle_bot_spec.rb:155
+./spec/battle_bot_spec.rb:161
+./spec/battle_bot_spec.rb:167
+./spec/battle_bot_spec.rb:175
+./spec/battle_bot_spec.rb:181
+./spec/battle_bot_spec.rb:187
+./spec/battle_bot_spec.rb:193
+./spec/battle_bot_spec.rb:213
+./spec/battle_bot_spec.rb:218
+./spec/battle_bot_spec.rb:475
