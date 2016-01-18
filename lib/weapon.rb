@@ -13,12 +13,12 @@ class Weapon
 		@picked_up = false
 	end
 
-	def bot=(b)
-		if b.nil?
-			@bot = b
+	def bot=(bot)
+		if bot.nil?
+			@bot = bot
 		else
-			raise ArgumentError unless b.is_a?(BattleBot)
-			@bot = b
+			raise ArgumentError unless bot.is_a?(BattleBot)
+			@bot = bot
 		end	
 	end
 

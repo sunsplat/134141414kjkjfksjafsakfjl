@@ -13,19 +13,27 @@ class BattleBot
 		has_weapon?
 	end
 
-	# def enemies
-	# 	@enemies
-	# 	raise NoMethodError if @enemies
-	# end
+	def name=(name)
+		raise NoMethodError if @name
+	end
 
-	# def weapon
-	# 	@weapon
-	# end
+	def health=(health)
+		raise NoMethodError if @health
+	end
+
+	def enemies=(enemies)
+		raise NoMethodError if @enemies
+	end
+
+	def weapon=(weapon)
+		raise NoMethodError 
+	end
 
 	def pick_up(weapon)
-		# raise ArgumentError unless weapon.instance_of?(Weapon.class)
-
+		raise ArgumentError unless weapon.instance_of?(Weapon)
+		raise ArgumentError if weapon.picked_up?
 		weapon.pick_up
+		@weapon = weapon unless @weapon
 	end
 
 	def drop_weapon
@@ -51,6 +59,6 @@ class BattleBot
 	end
 
 	def has_weapon?
-		@weapon
+		@weapon ? true : false
 	end
 end

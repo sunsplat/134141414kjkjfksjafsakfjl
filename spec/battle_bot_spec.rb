@@ -64,56 +64,56 @@ describe BattleBot do
   end
 
 
-#   # ------------------------------------
-#   # #name
-#   # ------------------------------------
+  # ------------------------------------
+  # #name
+  # ------------------------------------
 
 
-#   describe '#name' do
+  describe '#name' do
 
-#     it "raises NoMethodError when trying to assign a new value" do
-#       expect { bot.name = "Droid" }.to raise_error(NoMethodError)
-#     end
-#   end
-
-
-#   # ------------------------------------
-#   # #health
-#   # ------------------------------------
+    it "raises NoMethodError when trying to assign a new value" do
+      expect { bot.name = "Droid" }.to raise_error(NoMethodError)
+    end
+  end
 
 
-#   describe '#health' do
-
-#     it "raises NoMethodError when trying to assign a new value" do
-#       expect { bot.health = 500 }.to raise_error(NoMethodError)
-#     end
-#   end
+  # ------------------------------------
+  # #health
+  # ------------------------------------
 
 
-#   # # ------------------------------------
-#   # # #enemies
-#   # # ------------------------------------
+  describe '#health' do
+
+    it "raises NoMethodError when trying to assign a new value" do
+      expect { bot.health = 500 }.to raise_error(NoMethodError)
+    end
+  end
 
 
-#   describe '#enemies' do
-
-#     it "raises NoMethodError when trying to assign a new value" do
-#       expect { bot.enemies = [] }.to raise_error(NoMethodError)
-#     end
-#   end
+  # ------------------------------------
+  # #enemies
+  # ------------------------------------
 
 
-#   # # ------------------------------------
-#   # # #weapon
-#   # # ------------------------------------  
+  describe '#enemies' do
+
+    it "raises NoMethodError when trying to assign a new value" do
+      expect { bot.enemies = [] }.to raise_error(NoMethodError)
+    end
+  end
 
 
-#   describe '#weapon' do
+  # ------------------------------------
+  # #weapon
+  # ------------------------------------  
 
-#     it "raises NoMethodError when trying to assign a new value" do
-#       expect { bot.weapon = light_saber }.to raise_error(NoMethodError)
-#     end
-#   end
+
+  describe '#weapon' do
+
+    it "raises NoMethodError when trying to assign a new value" do
+      expect { bot.weapon = light_saber }.to raise_error(NoMethodError)
+    end
+  end
 
 
   # ------------------------------------
