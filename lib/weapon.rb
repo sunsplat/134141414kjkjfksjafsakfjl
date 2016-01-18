@@ -15,19 +15,16 @@ class Weapon
 
 	def bot=(bot)
 		if bot.nil?
-			@bot = bot
+			@bot = nil
 		else
 			raise ArgumentError unless bot.is_a?(BattleBot)
+			@picked_up = true
 			@bot = bot
 		end	
 	end
 
 	def picked_up?
 		@picked_up
-	end
-
-	def pick_up
-		@picked_up = true
 	end 
 
 end
